@@ -1,0 +1,3 @@
+[submodule "WhateverDSP"]
+	path = WhateverDSP
+	url = git@github.com:NuclearLighthouseStudios/WhateverDSP.git
