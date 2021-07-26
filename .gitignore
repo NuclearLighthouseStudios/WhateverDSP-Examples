@@ -1,0 +1,9 @@
+**/*
+!**/*/
+!**/*.*
+!**/README
+!**/Makefile
+**/.vscode/
+**/*.bin
+**/*.hex
+**/*.map
