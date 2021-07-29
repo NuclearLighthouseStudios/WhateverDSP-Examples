@@ -7,6 +7,7 @@
 #include "filters.h"
 
 #define NUMVOICES 16
+#define NUMOSCS 4
 
 struct osc
 {
@@ -18,12 +19,12 @@ struct osc
 
 struct voice
 {
-	struct osc oscs[2];
+	struct osc oscs[NUMOSCS];
 	int note;
 	float freq;
-	float output;
+	float output[2];
 	float env;
-	struct filter lpg;
+	struct filter lpg[2];
 	bool active;
 	bool sustained;
 };
@@ -32,6 +33,7 @@ struct voice voices[NUMVOICES];
 int currvoice = 0;
 
 unsigned long int sample_rate;
+float sample_rate_inverse;
 
 bool sustain = false;
 
@@ -46,7 +48,7 @@ struct delay_line
 
 #define NUMVERBS 4
 struct delay_line reverb[NUMVERBS];
-float reverb_times[NUMVERBS] = {0.11187f, 0.0932f, 0.17123f, 0.2343f};
+float reverb_times[NUMVERBS] = { 0.11187f, 0.0932f, 0.17123f, 0.2343f };
 
 struct filter reverb_lp;
 struct filter reverb_hp;
@@ -59,12 +61,12 @@ static inline float shape_tanh(const float x)
 	const float x2 = x * x;
 
 	return (x * (2.45550750702956f + 2.45550750702956f * ax + (0.893229853513558f + 0.821226666969744f * ax) * x2) /
-			(2.44506634652299f + (2.44506634652299f + x2) * fabsf(x + 0.814642734961073f * x * ax)));
+		(2.44506634652299f + (2.44506634652299f + x2) * fabsf(x + 0.814642734961073f * x * ax)));
 }
 
 static inline float midi_to_freq(float note)
 {
-	return 440.0 * powf(2.0f, (note - 69.0f) / 12.0f);
+	return 440.0f * powf(2.0f, (note - 69.0f) / 12.0f);
 }
 
 static inline void osc_init(struct osc *osc, float freq, float vol)
@@ -77,7 +79,7 @@ static inline void osc_init(struct osc *osc, float freq, float vol)
 
 static inline void osc_process(struct osc *osc)
 {
-	osc->phase += osc->freq / (float)sample_rate;
+	osc->phase += osc->freq * sample_rate_inverse;
 
 	if (osc->phase >= 1.0f)
 		osc->phase -= 1.0f;
@@ -90,46 +92,53 @@ static inline void voice_init(struct voice *voice, int note, bool active)
 	voice->note = note;
 	voice->freq = midi_to_freq(note);
 
-	for (int osc = 0; osc < 2; osc++)
+	for (int osc = 0; osc < NUMOSCS; osc++)
 	{
-		float detune = ((float)rand() / (float)RAND_MAX - 0.5) * 0.1;
-		float freq = midi_to_freq(note + detune);
+		float detune = ((float)rand() / (float)RAND_MAX - 0.5f) * 0.25f;
+		float freq = midi_to_freq(note + detune - (12 * (osc % 2)));
 		osc_init(&(voice->oscs[osc]), freq, 1.0f);
 	}
 
 	voice->env = 0;
-	filter_init(&(voice->lpg), voice->env, ((float)rand() / (float)RAND_MAX) * 0.35f + 0.5f);
 
-	voice->output = 0;
+	for (int flt = 0; flt < 2; flt++)
+		filter_init(&(voice->lpg[flt]), voice->env, ((float)rand() / (float)RAND_MAX) * 0.35f + 0.55f);
+
+	voice->output[0] = 0;
+	voice->output[1] = 0;
+
 	voice->active = active;
 }
 
 static inline void voice_process(struct voice *voice)
 {
-	voice->output = 0;
+	voice->output[0] = 0.0f;
+	voice->output[1] = 0.0f;
 
 	if ((!voice->active) && (voice->env < 0.01f))
 		return;
 
-	for (int osc = 0; osc < 2; osc++)
+	for (int osc = 0; osc < NUMOSCS; osc++)
 	{
 		osc_process(&(voice->oscs[osc]));
-		voice->output += voice->oscs[osc].output;
+		voice->output[osc % 2] += voice->oscs[osc].output;
 	}
 
 	if (voice->active)
-		voice->env += (1.0f - voice->env) * 0.1f / (float)sample_rate;
+		voice->env += (1.0f - voice->env) * 0.25f * sample_rate_inverse;
 	else
-		voice->env -= voice->env * 0.1f / (float)sample_rate;
+		voice->env -= voice->env * 0.1f * sample_rate_inverse;
 
 	// if (voice->active)
 	// 	voice->env = 1;
 	// else
 	// 	voice->env = 0;
 
-	voice->lpg.cutoff = voice->env * 0.4;
+	voice->lpg[0].cutoff = voice->env * 0.4f;
+	voice->lpg[1].cutoff = voice->env * 0.4f;
 
-	voice->output = filter_lp_iir(voice->output, &(voice->lpg)) * voice->env;
+	voice->output[0] = filter_lp_iir(voice->output[0], &(voice->lpg[0])) * voice->env;
+	voice->output[1] = filter_lp_iir(voice->output[1], &(voice->lpg[1])) * voice->env;
 }
 
 static inline void delay_line_init(struct delay_line *delay_line, float length, float damp)
@@ -158,6 +167,7 @@ static inline void delay_line_process(struct delay_line *delay_line, float input
 void wdsp_init(unsigned long int _sample_rate)
 {
 	sample_rate = _sample_rate;
+	sample_rate_inverse = 1.0f / _sample_rate;
 
 	for (int voice = 0; voice < NUMVOICES; voice++)
 	{
@@ -175,42 +185,45 @@ void wdsp_init(unsigned long int _sample_rate)
 
 void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
 {
-	float volume = io_analog_in(POT_4) * 0.5;
+	float volume = io_analog_in(POT_4) * 0.5f;
 
 	for (int i = 0; i < nBlocks; i++)
 	{
-		// float l_samp = in_buffer[i][0];
-		// float r_samp = in_buffer[i][1];
+		// float l_sample = in_buffer[i][0];
+		// float r_sample = in_buffer[i][1];
 
-		float sample = 0.0f;
+		float sample[2] = { 0.0f };
 
 		for (int voice = 0; voice < NUMVOICES; voice++)
 		{
 			voice_process(&voices[voice]);
-			sample += voices[voice].output * 0.1f;
+			sample[0] += voices[voice].output[0] * 0.1f;
+			sample[1] += voices[voice].output[1] * 0.1f;
 		}
 
-		sample = shape_tanh(sample);
+		sample[0] = shape_tanh(sample[0]);
+		sample[1] = shape_tanh(sample[1]);
 
-		float r_samp = 0;
+		float rev_samp = 0.0f;
 
 		for (int i = 0; i < NUMVERBS; i++)
 		{
-			r_samp += reverb[i].output * (1.0f / (float)NUMVERBS);
+			rev_samp += reverb[i].output * (1.0f / (float)NUMVERBS);
 		}
 
-		r_samp = filter_lp_iir(r_samp, &reverb_lp);
-		r_samp = filter_hp_iir(r_samp, &reverb_hp);
+		rev_samp = filter_lp_iir(rev_samp, &reverb_lp);
+		rev_samp = filter_hp_iir(rev_samp, &reverb_hp);
 
-		sample += r_samp * 0.5;
+		sample[0] += rev_samp * 0.5f;
+		sample[1] += rev_samp * 0.5f;
 
 		for (int i = 0; i < NUMVERBS; i++)
 		{
-			delay_line_process(&(reverb[i]), sample);
+			delay_line_process(&(reverb[i]), sample[i % 2]);
 		}
 
-		out_buffer[i][0] = (reverb[0].output + reverb[2].output) * volume;
-		out_buffer[i][1] = (reverb[1].output + reverb[2].output) * volume;
+		out_buffer[i][0] = (sample[0] + (reverb[0].output + reverb[1].output)) * volume;
+		out_buffer[i][1] = (sample[1] + (reverb[2].output + reverb[3].output)) * volume;
 	}
 }
 
