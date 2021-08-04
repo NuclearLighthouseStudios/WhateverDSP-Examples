@@ -10,7 +10,7 @@ unsigned int sample_pos = 0;
 bool playing = false;
 bool trigger = false;
 
-void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
+void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
 {
 	if (io_digital_in(BUTTON_1) && !trigger)
 	{
@@ -20,7 +20,7 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 
 	trigger = io_digital_in(BUTTON_1);
 
-	for (int i = 0; i < nBlocks; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		float sample = 0;
 		if (playing)
@@ -33,8 +33,8 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 			}
 		}
 
-		out_buffer[i][0] = sample;
-		out_buffer[i][1] = sample;
+		out_buffer[0][i] = sample;
+		out_buffer[1][i] = sample;
 	}
 
 	io_digital_out(LED_1, playing);

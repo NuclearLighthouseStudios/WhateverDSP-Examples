@@ -12,7 +12,7 @@ struct filter lp_r;
 struct filter hp_l;
 struct filter hp_r;
 
-void wdsp_init(unsigned long int _sample_rate)
+void wdsp_init(void)
 {
 	lp_l.pos = 0;
 	lp_l.vel = 0;
@@ -25,7 +25,7 @@ void wdsp_init(unsigned long int _sample_rate)
 	hp_r.vel = 0;
 }
 
-void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
+void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
 {
 	bool clip = false;
 
@@ -43,10 +43,10 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 
 	float vol = io_analog_in(POT_4);
 
-	for (int i = 0; i < nBlocks; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		float l_samp = in_buffer[i][0];
-		float r_samp = in_buffer[i][1];
+		float l_samp = in_buffer[0][i];
+		float r_samp = in_buffer[1][i];
 
 		l_samp = filter_lp_iir(l_samp, &lp_l);
 		r_samp = filter_lp_iir(r_samp, &lp_r);
@@ -57,8 +57,8 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 		if ((fabs(l_samp) > 0.9) || (fabs(r_samp) > 0.9))
 			clip = true;
 
-		out_buffer[i][0] = bypass ? in_buffer[i][0] : l_samp * vol;
-		out_buffer[i][1] = bypass ? in_buffer[i][1] : r_samp * vol;
+		out_buffer[0][i] = bypass ? in_buffer[i][0] : l_samp * vol;
+		out_buffer[1][i] = bypass ? in_buffer[i][1] : r_samp * vol;
 	}
 
 	io_digital_out(LED_1, clip);

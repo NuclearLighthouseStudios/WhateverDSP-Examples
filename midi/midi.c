@@ -20,20 +20,20 @@ float last_sust = -1;
 
 int clock_count = 1;
 
-void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
+void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
 {
-	for (int i = 0; i < nBlocks; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		float l_samp = in_buffer[i][0];
-		float r_samp = in_buffer[i][1];
+		float l_samp = in_buffer[0][i];
+		float r_samp = in_buffer[1][i];
 
 		if (fabs(l_samp) + fabs(r_samp) > 0.5)
 		{
 			trigger = true;
 		}
 
-		out_buffer[i][0] = 0;
-		out_buffer[i][1] = 0;
+		out_buffer[0][i] = 0;
+		out_buffer[1][i] = 0;
 	}
 }
 

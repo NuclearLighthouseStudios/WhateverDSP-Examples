@@ -6,7 +6,7 @@
 
 #include "filters.h"
 
-#define NUMVOICES 16
+#define NUMVOICES 20
 #define NUMOSCS 4
 
 struct osc
@@ -32,8 +32,8 @@ struct voice
 struct voice voices[NUMVOICES];
 int currvoice = 0;
 
-unsigned long int sample_rate;
-float sample_rate_inverse;
+const unsigned long int sample_rate = SAMPLE_RATE;
+const float sample_rate_inverse = 1.0f / (float)SAMPLE_RATE;
 
 bool sustain = false;
 
@@ -164,11 +164,8 @@ static inline void delay_line_process(struct delay_line *delay_line, float input
 	delay_line->pos %= delay_line->length;
 }
 
-void wdsp_init(unsigned long int _sample_rate)
+void wdsp_init(void)
 {
-	sample_rate = _sample_rate;
-	sample_rate_inverse = 1.0f / _sample_rate;
-
 	for (int voice = 0; voice < NUMVOICES; voice++)
 	{
 		voice_init(&voices[voice], 64, false);
@@ -183,14 +180,14 @@ void wdsp_init(unsigned long int _sample_rate)
 	filter_init(&reverb_hp, 0.001f, 0.0f);
 }
 
-void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
+void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
 {
 	float volume = io_analog_in(POT_4) * 0.5f;
 
-	for (int i = 0; i < nBlocks; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		// float l_sample = in_buffer[i][0];
-		// float r_sample = in_buffer[i][1];
+		// float l_sample = in_buffer[0][i];
+		// float r_sample = in_buffer[1][i];
 
 		float sample[2] = { 0.0f };
 
@@ -222,8 +219,8 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 			delay_line_process(&(reverb[i]), sample[i % 2]);
 		}
 
-		out_buffer[i][0] = (sample[0] + (reverb[0].output + reverb[1].output)) * volume;
-		out_buffer[i][1] = (sample[1] + (reverb[2].output + reverb[3].output)) * volume;
+		out_buffer[0][i] = (sample[0] + (reverb[0].output + reverb[1].output)) * volume;
+		out_buffer[1][i] = (sample[1] + (reverb[2].output + reverb[3].output)) * volume;
 	}
 }
 

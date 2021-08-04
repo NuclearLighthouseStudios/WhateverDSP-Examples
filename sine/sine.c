@@ -4,17 +4,12 @@
 
 #include <libwdsp.h>
 
-float sample_rate;
+float sample_rate = SAMPLE_RATE;
 float phase;
 
-void wdsp_init(unsigned long int _sample_rate)
+void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
 {
-	sample_rate = _sample_rate;
-}
-
-void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
-{
-	for (int i = 0; i < nBlocks; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
 		float sample = sinf(phase);
 
@@ -22,7 +17,7 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 		if (phase > 2.0f * M_PI)
 			phase -= 2.0f * M_PI;
 
-		out_buffer[i][0] = sample;
-		out_buffer[i][1] = sample;
+		out_buffer[0][i] = sample;
+		out_buffer[1][i] = sample;
 	}
 }

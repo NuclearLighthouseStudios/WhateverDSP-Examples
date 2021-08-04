@@ -23,7 +23,7 @@ struct voice
 struct voice voices[NUMVOICES];
 int currvoice = 0;
 
-unsigned long int sample_rate;
+const unsigned long int sample_rate = SAMPLE_RATE;
 
 float lpval, lplast;
 float hpval, hplast;
@@ -42,10 +42,9 @@ static inline float shape_tanh(const float x)
 			(2.44506634652299f + (2.44506634652299f + x2) * fabsf(x + 0.814642734961073f * x * ax)));
 }
 
-void wdsp_init(unsigned long int _sample_rate)
+void wdsp_init(void)
 {
 	feedback = 0;
-	sample_rate = _sample_rate;
 
 	for (int voice = 0; voice < NUMVOICES; voice++)
 	{
@@ -68,7 +67,7 @@ void wdsp_init(unsigned long int _sample_rate)
 	hpval = hplast = 0.0f;
 }
 
-void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int nBlocks)
+void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
 {
 	io_digital_out(MUTE, io_digital_in(BUTTON_2));
 
@@ -79,10 +78,10 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 	float reso = io_analog_in(POT_2);
 	feedback = powf(io_analog_in(POT_3), 3.0f) * 0.9f;
 
-	for (int i = 0; i < nBlocks; i++)
+	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
-		float l_samp = in_buffer[i][0];
-		float r_samp = in_buffer[i][1];
+		float l_samp = in_buffer[0][i];
+		float r_samp = in_buffer[1][i];
 
 		float exciter = (l_samp + r_samp) / 2.0f;
 		float noise = (((float)rand() / (float)RAND_MAX) * 2.0f - 1.0f) * 0.001f + (l_samp + r_samp) / 2.0f;
@@ -126,8 +125,8 @@ void wdsp_process(float in_buffer[][2], float out_buffer[][2], unsigned long int
 		else
 			sample = shape_tanh(sample) * 0.75;
 
-		out_buffer[i][0] = sample;
-		out_buffer[i][1] = sample;
+		out_buffer[0][i] = sample;
+		out_buffer[1][i] = sample;
 	}
 
 	io_digital_out(LED_1, fabs(out_buffer[0][0]) >= 0.5);
