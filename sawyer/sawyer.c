@@ -29,13 +29,13 @@ struct voice
 	bool sustained;
 };
 
-struct voice voices[NUMVOICES];
-int currvoice = 0;
+static struct voice voices[NUMVOICES];
+static int currvoice = 0;
 
-const unsigned long int sample_rate = SAMPLE_RATE;
-const float sample_rate_inverse = 1.0f / (float)SAMPLE_RATE;
+static const unsigned long int sample_rate = SAMPLE_RATE;
+static const float sample_rate_inverse = 1.0f / (float)SAMPLE_RATE;
 
-bool sustain = false;
+static bool sustain = false;
 
 struct delay_line
 {
@@ -47,11 +47,11 @@ struct delay_line
 };
 
 #define NUMVERBS 4
-struct delay_line reverb[NUMVERBS];
-float reverb_times[NUMVERBS] = { 0.11187f, 0.0932f, 0.17123f, 0.2343f };
+static struct delay_line reverb[NUMVERBS];
+static float reverb_times[NUMVERBS] = { 0.11187f, 0.0932f, 0.17123f, 0.2343f };
 
-struct filter reverb_lp;
-struct filter reverb_hp;
+static struct filter reverb_lp;
+static struct filter reverb_hp;
 
 /* greets to wrl */
 static inline float shape_tanh(const float x)
