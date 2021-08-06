@@ -180,7 +180,7 @@ void wdsp_init(void)
 	filter_init(&reverb_hp, 0.001f, 0.0f);
 }
 
-void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
+void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 {
 	float volume = io_analog_in(POT_4) * 0.5f;
 

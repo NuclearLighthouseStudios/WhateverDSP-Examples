@@ -67,7 +67,7 @@ void wdsp_init(void)
 	hpval = hplast = 0.0f;
 }
 
-void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
+void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 {
 	io_digital_out(MUTE, io_digital_in(BUTTON_2));
 

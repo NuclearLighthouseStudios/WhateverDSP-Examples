@@ -4,7 +4,7 @@
 
 revmodel reverb;
 
-void wdsp_process(float in_buffer[NUM_STREAMS][BLOCK_SIZE], float out_buffer[NUM_STREAMS][BLOCK_SIZE])
+void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 {
 	reverb.processreplace(in_buffer[0], in_buffer[1], out_buffer[0], out_buffer[1], BLOCK_SIZE, 1);
 }
