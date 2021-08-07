@@ -25,3 +25,5 @@ For more info read the README in the [main project repository](https://github.co
 ## License
 
 All examples are published under the Unlicense. See `UNLICENSE` for more information.
+
+The original Freeverb algorithm and code were developed by Jezar at Dreampoint and are in the public domain.
