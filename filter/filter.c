@@ -57,8 +57,8 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 		if ((fabs(l_samp) > 0.9) || (fabs(r_samp) > 0.9))
 			clip = true;
 
-		out_buffer[0][i] = bypass ? in_buffer[i][0] : l_samp * vol;
-		out_buffer[1][i] = bypass ? in_buffer[i][1] : r_samp * vol;
+		out_buffer[0][i] = bypass ? in_buffer[0][i] : l_samp * vol;
+		out_buffer[1][i] = bypass ? in_buffer[1][i] : r_samp * vol;
 	}
 
 	io_digital_out(LED_1, clip);
