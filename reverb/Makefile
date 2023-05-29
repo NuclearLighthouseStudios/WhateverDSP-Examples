@@ -1,5 +1,5 @@
 TARGET = reverb
-BOARD = wdsp-dev
+BOARD = fxdsp
 
 include ../WhateverDSP/libwdsp.mk
 
