@@ -5,7 +5,7 @@
 float sample_rate = SAMPLE_RATE;
 float phase;
 
-void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
+void wdsp_process(float **in_buffer, float **out_buffer)
 {
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{

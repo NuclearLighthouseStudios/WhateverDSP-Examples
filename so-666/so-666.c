@@ -67,7 +67,7 @@ void wdsp_init(void)
 	hpval = hplast = 0.0f;
 }
 
-void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
+void wdsp_process(float **in_buffer, float **out_buffer)
 {
 	io_digital_out(MUTE, io_digital_in(BUTTON_2));
 
@@ -132,7 +132,7 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 	io_digital_out(LED_1, fabs(out_buffer[0][0]) >= 0.5);
 }
 
-void wdsp_idle(void)
+void wdsp_idle(unsigned long int ticks)
 {
 	midi_message *message = midi_get_message();
 

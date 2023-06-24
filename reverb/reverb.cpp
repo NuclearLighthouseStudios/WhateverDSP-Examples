@@ -12,7 +12,7 @@ float silence[BLOCK_SIZE] = { 0 };
 // We should probably come up with a better way to do that.
 volatile extern unsigned long int sys_ticks;
 
-void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
+void wdsp_process(float **in_buffer, float **out_buffer)
 {
 	if (active)
 	{
@@ -30,7 +30,7 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 	}
 }
 
-void wdsp_idle(void)
+void wdsp_idle(unsigned long int ticks)
 {
 	static unsigned long int button_start;
 	static bool button_state = false;

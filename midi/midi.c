@@ -20,7 +20,7 @@ float last_sust = -1;
 
 int clock_count = 1;
 
-void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
+void wdsp_process(float **in_buffer, float **out_buffer)
 {
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{
@@ -37,7 +37,7 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 	}
 }
 
-void wdsp_idle(void)
+void wdsp_idle(unsigned long int ticks)
 {
 	float sustain = io_analog_in(POT_1);
 

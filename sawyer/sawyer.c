@@ -180,7 +180,7 @@ void wdsp_init(void)
 	filter_init(&reverb_hp, 0.001f, 0.0f);
 }
 
-void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
+void wdsp_process(float **in_buffer, float **out_buffer)
 {
 	float volume = io_analog_in(POT_4) * 0.5f;
 
@@ -224,7 +224,7 @@ void wdsp_process(float *in_buffer[BLOCK_SIZE], float *out_buffer[BLOCK_SIZE])
 	}
 }
 
-void wdsp_idle(void)
+void wdsp_idle(unsigned long int ticks)
 {
 	midi_message *message = midi_get_message();
 
