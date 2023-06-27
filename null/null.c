@@ -1,6 +1,6 @@
 #include <libwdsp.h>
 
-void wdsp_process(float **in_buffer, float **out_buffer)
+void wdsp_process(float *in_buffer[], float *out_buffer[])
 {
 	for (int i = 0; i < BLOCK_SIZE; i++)
 	{

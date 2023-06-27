@@ -12,7 +12,7 @@ float silence[BLOCK_SIZE] = { 0 };
 // We should probably come up with a better way to do that.
 volatile extern unsigned long int sys_ticks;
 
-void wdsp_process(float **in_buffer, float **out_buffer)
+void wdsp_process(float *in_buffer[], float *out_buffer[])
 {
 	if (active)
 	{

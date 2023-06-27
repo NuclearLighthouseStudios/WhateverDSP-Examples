@@ -10,7 +10,7 @@ unsigned int sample_pos = 0;
 bool playing = false;
 bool trigger = false;
 
-void wdsp_process(float **in_buffer, float **out_buffer)
+void wdsp_process(float *in_buffer[], float *out_buffer[])
 {
 	if (io_digital_in(BUTTON_1) && !trigger)
 	{

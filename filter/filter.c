@@ -25,7 +25,7 @@ void wdsp_init(void)
 	hp_r.vel = 0.0f;
 }
 
-void wdsp_process(float **in_buffer, float **out_buffer)
+void wdsp_process(float *in_buffer[], float *out_buffer[])
 {
 	bool clip = false;
 
